@@ -12,8 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { Loader2, CreditCard, Check, Ticket, Calendar, Clock, Users, MapPin, Clapperboard } from "lucide-react";
+import { Loader2, CreditCard, Check, Ticket, Calendar, Clock, Users, MapPin, Clapperboard, Armchair } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
+import SeatLayout from "./SeatLayout";
 
 interface BookingDialogProps {
   movie: Tables<"movies">;
@@ -26,7 +27,7 @@ const BookingDialog = ({ movie, open, onOpenChange }: BookingDialogProps) => {
   const { user } = useAuth();
   const { createBooking, updateBookingStatus } = useBookings();
   
-  const [step, setStep] = useState<"theaters" | "seats" | "payment" | "success">("theaters");
+  const [step, setStep] = useState<"theaters" | "quantity" | "seats" | "payment" | "success">("theaters");
   const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [selectedShowtime, setSelectedShowtime] = useState<{
     id: string;
@@ -38,13 +39,14 @@ const BookingDialog = ({ movie, open, onOpenChange }: BookingDialogProps) => {
     availableSeats: number;
     screenNumber: number;
   } | null>(null);
-  const [seats, setSeats] = useState("2");
+  const [ticketCount, setTicketCount] = useState("2");
+  const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [bookingCode, setBookingCode] = useState("");
 
   const { theatersWithShowtimes, loading: loadingShowtimes } = useShowtimes(movie.id, selectedDate);
 
-  const totalAmount = selectedShowtime ? selectedShowtime.price * parseInt(seats) : 0;
+  const totalAmount = selectedShowtime ? selectedShowtime.price * parseInt(ticketCount) : 0;
 
   const availableDates = Array.from({ length: 7 }, (_, i) => {
     const date = addDays(new Date(), i);
@@ -80,12 +82,21 @@ const BookingDialog = ({ movie, open, onOpenChange }: BookingDialogProps) => {
       availableSeats,
       screenNumber,
     });
+    setStep("quantity");
+  };
+
+  const handleProceedToSeatSelection = () => {
+    if (parseInt(ticketCount) > (selectedShowtime?.availableSeats || 0)) {
+      toast.error(`Only ${selectedShowtime?.availableSeats} seats available`);
+      return;
+    }
+    setSelectedSeats([]);
     setStep("seats");
   };
 
   const handleProceedToPayment = () => {
-    if (parseInt(seats) > (selectedShowtime?.availableSeats || 0)) {
-      toast.error(`Only ${selectedShowtime?.availableSeats} seats available`);
+    if (selectedSeats.length !== parseInt(ticketCount)) {
+      toast.error(`Please select exactly ${ticketCount} seats`);
       return;
     }
     setStep("payment");
@@ -98,7 +109,7 @@ const BookingDialog = ({ movie, open, onOpenChange }: BookingDialogProps) => {
 
     const booking = await createBooking(
       movie.id,
-      parseInt(seats),
+      parseInt(ticketCount),
       selectedDate,
       selectedShowtime.time,
       totalAmount
@@ -130,14 +141,18 @@ const BookingDialog = ({ movie, open, onOpenChange }: BookingDialogProps) => {
   const handleClose = () => {
     setStep("theaters");
     setSelectedShowtime(null);
-    setSeats("2");
+    setTicketCount("2");
+    setSelectedSeats([]);
     onOpenChange(false);
   };
 
   const handleBack = () => {
-    if (step === "seats") {
+    if (step === "quantity") {
       setSelectedShowtime(null);
       setStep("theaters");
+    } else if (step === "seats") {
+      setSelectedSeats([]);
+      setStep("quantity");
     } else if (step === "payment") {
       setStep("seats");
     }
@@ -154,6 +169,11 @@ const BookingDialog = ({ movie, open, onOpenChange }: BookingDialogProps) => {
               <span className="flex items-center gap-2">
                 <Clapperboard className="w-5 h-5 text-primary" />
                 Theaters Showing {movie.title}
+              </span>
+            ) : step === "seats" ? (
+              <span className="flex items-center gap-2">
+                <Armchair className="w-5 h-5 text-primary" />
+                Select Your Seats
               </span>
             ) : (
               `Book Tickets - ${movie.title}`
@@ -270,7 +290,7 @@ const BookingDialog = ({ movie, open, onOpenChange }: BookingDialogProps) => {
           </div>
         )}
 
-        {step === "seats" && selectedShowtime && (
+        {step === "quantity" && selectedShowtime && (
           <div className="space-y-6">
             {/* Selected Theater Info */}
             <div className="rounded-lg bg-muted/50 p-4 space-y-2">
@@ -291,20 +311,20 @@ const BookingDialog = ({ movie, open, onOpenChange }: BookingDialogProps) => {
               </div>
             </div>
 
-            {/* Seats Selection */}
+            {/* Ticket Count Selection */}
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 <Users className="w-4 h-4" />
-                Number of Seats
+                How many tickets?
               </Label>
-              <Select value={seats} onValueChange={setSeats}>
+              <Select value={ticketCount} onValueChange={setTicketCount}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {Array.from({ length: Math.min(10, selectedShowtime.availableSeats) }, (_, i) => i + 1).map((num) => (
                     <SelectItem key={num} value={num.toString()}>
-                      {num} {num === 1 ? "Seat" : "Seats"}
+                      {num} {num === 1 ? "Ticket" : "Tickets"}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -314,7 +334,7 @@ const BookingDialog = ({ movie, open, onOpenChange }: BookingDialogProps) => {
               </p>
             </div>
 
-            {/* Price Summary */}
+            {/* Price Preview */}
             <div className="rounded-lg bg-muted p-4 space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Price per ticket</span>
@@ -322,7 +342,7 @@ const BookingDialog = ({ movie, open, onOpenChange }: BookingDialogProps) => {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Quantity</span>
-                <span>{seats} tickets</span>
+                <span>{ticketCount} tickets</span>
               </div>
               <div className="border-t border-border pt-2 flex justify-between font-semibold">
                 <span>Total Amount</span>
@@ -334,7 +354,62 @@ const BookingDialog = ({ movie, open, onOpenChange }: BookingDialogProps) => {
               <Button variant="outline" onClick={handleBack} className="flex-1">
                 Back
               </Button>
-              <Button onClick={handleProceedToPayment} className="flex-1" size="lg">
+              <Button onClick={handleProceedToSeatSelection} className="flex-1" size="lg">
+                Select Seats
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {step === "seats" && selectedShowtime && (
+          <div className="space-y-6">
+            {/* Theater & Showtime Info */}
+            <div className="flex items-center justify-between text-sm bg-muted/50 rounded-lg p-3">
+              <div>
+                <span className="font-medium">{selectedShowtime.theaterName}</span>
+                <span className="text-muted-foreground"> • Screen {selectedShowtime.screenNumber}</span>
+              </div>
+              <div className="text-muted-foreground">
+                {format(new Date(selectedDate), "MMM d")} at {selectedShowtime.time.slice(0, 5)}
+              </div>
+            </div>
+
+            {/* Seat Layout */}
+            <ScrollArea className="h-[350px]">
+              <SeatLayout
+                totalSeats={96}
+                availableSeats={selectedShowtime.availableSeats}
+                maxSelectable={parseInt(ticketCount)}
+                selectedSeats={selectedSeats}
+                onSeatsChange={setSelectedSeats}
+              />
+            </ScrollArea>
+
+            {/* Price Summary */}
+            <div className="rounded-lg bg-muted p-4 flex justify-between items-center">
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  {ticketCount} tickets × ₹{selectedShowtime.price}
+                </p>
+                {selectedSeats.length > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    Seats: {selectedSeats.sort().join(", ")}
+                  </p>
+                )}
+              </div>
+              <span className="text-xl font-bold text-primary">₹{totalAmount}</span>
+            </div>
+
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={handleBack} className="flex-1">
+                Back
+              </Button>
+              <Button 
+                onClick={handleProceedToPayment} 
+                className="flex-1" 
+                size="lg"
+                disabled={selectedSeats.length !== parseInt(ticketCount)}
+              >
                 Proceed to Payment
               </Button>
             </div>
@@ -358,7 +433,9 @@ const BookingDialog = ({ movie, open, onOpenChange }: BookingDialogProps) => {
                 <p>{selectedShowtime.theaterLocation}</p>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">{seats} seats</span>
+                <span className="text-muted-foreground">
+                  Seats: {selectedSeats.sort().join(", ")}
+                </span>
                 <span className="font-semibold">₹{totalAmount}</span>
               </div>
             </div>
@@ -418,7 +495,7 @@ const BookingDialog = ({ movie, open, onOpenChange }: BookingDialogProps) => {
               <p><strong>{movie.title}</strong></p>
               <p>{selectedShowtime.theaterName}</p>
               <p>{format(new Date(selectedDate), "EEEE, MMMM d, yyyy")} at {selectedShowtime.time.slice(0, 5)}</p>
-              <p>{seats} {parseInt(seats) === 1 ? "seat" : "seats"}</p>
+              <p>Seats: {selectedSeats.sort().join(", ")}</p>
             </div>
 
             <Button onClick={handleClose} className="w-full" size="lg">
