@@ -2,7 +2,8 @@
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+**URL**: https://lovable.dev/projects/
+https://lovable.dev/projects/791594e1-ced8-418f-9bb5-9c69d61e2d5f
 
 ## How can I edit this code?
 
@@ -10,7 +11,7 @@ There are several ways of editing your application.
 
 **Use Lovable**
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+Simply visit the [Lovable Project](https://lovable.dev/projects/791594e1-ced8-418f-9bb5-9c69d61e2d5f) and start prompting.
 
 Changes made via Lovable will be committed automatically to this repo.
 
@@ -24,7 +25,7 @@ Follow these steps:
 
 ```sh
 # Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+git clone <>
 
 # Step 2: Navigate to the project directory.
 cd <YOUR_PROJECT_NAME>
