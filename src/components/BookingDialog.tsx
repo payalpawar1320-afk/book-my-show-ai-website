@@ -12,9 +12,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { Loader2, CreditCard, Check, Ticket, Calendar, Clock, Users, MapPin, Clapperboard, Armchair } from "lucide-react";
+import { Loader2, Ticket, Calendar, Clock, Users, MapPin, Clapperboard, Armchair, CreditCard } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import SeatLayout from "./SeatLayout";
+import PaymentMethods from "./PaymentMethods";
+import BookingReceipt from "./BookingReceipt";
 
 interface BookingDialogProps {
   movie: Tables<"movies">;
@@ -418,90 +420,86 @@ const BookingDialog = ({ movie, open, onOpenChange }: BookingDialogProps) => {
 
         {step === "payment" && selectedShowtime && (
           <div className="space-y-6">
-            <div className="rounded-lg border border-border p-4 space-y-3">
-              <div className="flex items-center gap-3">
-                <Ticket className="w-5 h-5 text-primary" />
-                <div>
-                  <p className="font-medium">{movie.title}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {format(new Date(selectedDate), "EEE, MMM d")} at {selectedShowtime.time.slice(0, 5)}
-                  </p>
+            {/* Booking Summary */}
+            <div className="rounded-lg border border-border overflow-hidden">
+              <div className="bg-muted/50 p-3 border-b border-border">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Ticket className="w-4 h-4 text-primary" />
+                  Booking Summary
                 </div>
               </div>
-              <div className="text-sm text-muted-foreground">
-                <p>{selectedShowtime.theaterName}</p>
-                <p>{selectedShowtime.theaterLocation}</p>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">
-                  Seats: {selectedSeats.sort().join(", ")}
-                </span>
-                <span className="font-semibold">₹{totalAmount}</span>
+              <div className="p-4 space-y-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="font-semibold">{movie.title}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {movie.genres?.slice(0, 2).join(", ")}
+                    </p>
+                  </div>
+                  {movie.poster_url && (
+                    <img 
+                      src={movie.poster_url} 
+                      alt={movie.title}
+                      className="w-12 h-16 object-cover rounded"
+                    />
+                  )}
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-3 h-3 text-muted-foreground" />
+                    <span className="text-muted-foreground">{selectedShowtime.theaterName}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-3 h-3 text-muted-foreground" />
+                    <span className="text-muted-foreground">{format(new Date(selectedDate), "EEE, MMM d")}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-3 h-3 text-muted-foreground" />
+                    <span className="text-muted-foreground">{selectedShowtime.time.slice(0, 5)}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Armchair className="w-3 h-3 text-muted-foreground" />
+                    <span className="text-muted-foreground">Screen {selectedShowtime.screenNumber}</span>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-border">
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-muted-foreground">Seats</span>
+                    <span className="font-medium">{selectedSeats.sort().join(", ")}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">{ticketCount} Ticket(s) × ₹{selectedShowtime.price}</span>
+                    <span className="font-semibold text-primary">₹{totalAmount}</span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="rounded-lg bg-muted/50 p-4">
-              <div className="flex items-center gap-3 mb-4">
-                <CreditCard className="w-5 h-5 text-primary" />
-                <span className="font-medium">Mock Payment</span>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                This is a demo payment. Click the button below to simulate a successful payment.
-              </p>
-            </div>
-
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={handleBack} className="flex-1">
-                Back
-              </Button>
-              <Button
-                onClick={handleMockPayment}
-                className="flex-1"
-                size="lg"
-                disabled={isProcessing}
-              >
-                {isProcessing ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>Pay ₹{totalAmount}</>
-                )}
-              </Button>
-            </div>
+            {/* Payment Methods Component */}
+            <PaymentMethods
+              totalAmount={totalAmount}
+              isProcessing={isProcessing}
+              onPayment={handleMockPayment}
+              onBack={handleBack}
+            />
           </div>
         )}
 
         {step === "success" && selectedShowtime && (
-          <div className="space-y-6 text-center py-4">
-            <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto">
-              <Check className="w-8 h-8 text-green-500" />
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-1">Payment Successful!</h3>
-              <p className="text-muted-foreground text-sm">
-                Your tickets have been booked successfully
-              </p>
-            </div>
-
-            <div className="rounded-lg bg-primary/10 p-4 space-y-2">
-              <p className="text-sm text-muted-foreground">Booking Code</p>
-              <p className="text-2xl font-bold text-primary tracking-wider">{bookingCode}</p>
-            </div>
-
-            <div className="text-sm text-muted-foreground space-y-1">
-              <p><strong>{movie.title}</strong></p>
-              <p>{selectedShowtime.theaterName}</p>
-              <p>{format(new Date(selectedDate), "EEEE, MMMM d, yyyy")} at {selectedShowtime.time.slice(0, 5)}</p>
-              <p>Seats: {selectedSeats.sort().join(", ")}</p>
-            </div>
-
-            <Button onClick={handleClose} className="w-full" size="lg">
-              Done
-            </Button>
-          </div>
+          <BookingReceipt
+            bookingCode={bookingCode}
+            movieTitle={movie.title}
+            theaterName={selectedShowtime.theaterName}
+            theaterLocation={selectedShowtime.theaterLocation}
+            showDate={selectedDate}
+            showTime={selectedShowtime.time}
+            seats={selectedSeats}
+            ticketCount={parseInt(ticketCount)}
+            totalAmount={totalAmount}
+            onClose={handleClose}
+          />
         )}
       </DialogContent>
     </Dialog>
