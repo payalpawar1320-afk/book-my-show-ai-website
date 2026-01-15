@@ -1,5 +1,9 @@
 # Welcome to your Lovable project
 
+A collection of AI-powered tools designed to make life easier, fun, and productive!
+Making of clone website of Book my Show using AL tools Lovable
+
+
 ## Project info
 
 **URL**: https://lovable.dev/projects/
@@ -25,10 +29,10 @@ Follow these steps:
 
 ```sh
 # Step 1: Clone the repository using the project's Git URL.
-git clone <>
+git clone <https://github.com/payalpawar1320-afk/book-my-show-ai-website.git>
 
 # Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+cd <book_my_show_ai_website>
 
 # Step 3: Install the necessary dependencies.
 npm i
@@ -60,15 +64,9 @@ This project is built with:
 - React
 - shadcn-ui
 - Tailwind CSS
+- GitHub Pages
 
 ## How can I deploy this project?
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+Simply open (https://lovable.dev/projects/791594e1-ced8-418f-9bb5-9c69d61e2d5f) and click on Share -> Publish.
 
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
