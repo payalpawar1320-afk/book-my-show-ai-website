@@ -75,34 +75,49 @@ export const useBookings = () => {
     movieId: string,
     seats: number,
     showDate: string,
-    showTime: string,
-    totalAmount: number
+    showTime: string
   ) => {
     if (!user) {
       toast.error("Please sign in to book tickets");
       return null;
     }
 
-    const { data, error } = await supabase
-      .from("bookings")
-      .insert({
-        user_id: user.id,
-        movie_id: movieId,
-        seats,
-        show_date: showDate,
-        show_time: showTime,
-        total_amount: totalAmount,
-        status: "pending",
-      })
-      .select()
-      .single();
+    // Use secure server-side RPC function for booking creation
+    // This prevents price manipulation and ensures atomic seat availability checks
+    const { data, error } = await supabase.rpc('create_booking_safe', {
+      p_movie_id: movieId,
+      p_show_date: showDate,
+      p_show_time: showTime,
+      p_seats: seats
+    });
 
     if (error) {
       toast.error("Failed to create booking: " + error.message);
       return null;
     }
 
-    return data;
+    // The RPC returns an array with one row
+    const result = Array.isArray(data) ? data[0] : data;
+
+    if (!result?.success) {
+      toast.error(result?.error_msg || "Failed to create booking");
+      return null;
+    }
+
+    // Return booking data in expected format
+    return {
+      id: result.booking_id,
+      booking_code: result.booking_code,
+      total_amount: result.total_amount,
+      movie_id: movieId,
+      seats,
+      show_date: showDate,
+      show_time: showTime,
+      status: 'pending' as const,
+      user_id: user.id,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
   };
 
   const updateBookingStatus = async (

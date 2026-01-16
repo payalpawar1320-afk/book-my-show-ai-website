@@ -294,7 +294,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_booking_safe: {
+        Args: {
+          p_movie_id: string
+          p_seats: number
+          p_show_date: string
+          p_show_time: string
+        }
+        Returns: {
+          booking_code: string
+          booking_id: string
+          error_msg: string
+          success: boolean
+          total_amount: number
+        }[]
+      }
     }
     Enums: {
       booking_status: "pending" | "confirmed" | "paid" | "cancelled"
