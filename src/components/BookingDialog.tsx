@@ -119,8 +119,7 @@ const BookingDialog = ({ movie, open, onOpenChange }: BookingDialogProps) => {
       movie.id,
       parseInt(ticketCount),
       selectedDate,
-      selectedShowtime.time,
-      totalAmount
+      selectedShowtime.time
     );
 
     if (!booking) {
