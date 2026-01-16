@@ -67,8 +67,10 @@ This project is built with:
 - Tailwind CSS
 - GitHub Pages
 
-##published website link:
-https://movie-maze-intro.lovable.app
+## How do I deploy this website?
+
 
 Simply open (https://lovable.dev/projects/791594e1-ced8-418f-9bb5-9c69d61e2d5f) and click on Share -> Publish.
 
+published website link:
+https://movie-maze-intro.lovable.app
