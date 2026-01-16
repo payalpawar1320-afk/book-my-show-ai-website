@@ -8,6 +8,7 @@ Making of clone website of Book my Show using AL tools Lovable
 
 **URL**: https://lovable.dev/projects/
 https://lovable.dev/projects/791594e1-ced8-418f-9bb5-9c69d61e2d5f
+url:https://movie-maze-intro.lovable.app
 
 ## How can I edit this code?
 
@@ -66,7 +67,8 @@ This project is built with:
 - Tailwind CSS
 - GitHub Pages
 
-## How can I deploy this project?
+##published website link:
+https://movie-maze-intro.lovable.app
 
 Simply open (https://lovable.dev/projects/791594e1-ced8-418f-9bb5-9c69d61e2d5f) and click on Share -> Publish.
 
